@@ -1,0 +1,18 @@
+{
+  "name": "scaleme",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Felipe Santos <fesntmail@gmail.com> (felipecoder.com)",
+  "license": "ISC",
+  "dependencies": {
+    "do-wrapper": "^3.11.0",
+    "fs": "0.0.1-security"
+  },
+  "bin": {
+    "scaleme": "./index.js"
+  }
+}

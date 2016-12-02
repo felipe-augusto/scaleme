@@ -1,0 +1,10 @@
+{
+	"project": "test",
+	"git" : "https://github.com/fesnt/extract_article.git",
+	"port" : 8080,
+	"digital_ocean" : {
+		"key": "",
+		"region" : "nyc3",
+		"size": "512mb"
+	}
+}
