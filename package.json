@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "do-wrapper": "^3.11.0",
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "request": "^2.79.0"
   },
   "bin": {
     "scaleme": "./index.js"

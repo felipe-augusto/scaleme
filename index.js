@@ -22,7 +22,8 @@ if (program.file) {
 			slave_conf = slave_conf.replace(/\$\(folder\)/g, splitGit(obj.git));
 			slave_conf = slave_conf.replace(/\$\(url\)/g, obj.git);
 			slave_conf = slave_conf.replace(/\$\(port\)/g, obj.port);
-			// creates a slave droplet
+			console.log(slave_conf);
+			//creates a slave droplet
 			api.dropletsCreate({
 				"name": obj.project + "-slave",
 				"region": obj.digital_ocean.region,
