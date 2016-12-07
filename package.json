@@ -9,8 +9,11 @@
   "author": "Felipe Santos <fesntmail@gmail.com> (felipecoder.com)",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.1.4",
+    "cloudflare": "^1.0.5",
     "do-wrapper": "^3.11.0",
     "fs": "0.0.1-security",
+    "lodash": "^4.17.2",
     "request": "^2.79.0"
   },
   "bin": {

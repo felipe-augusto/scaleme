@@ -24,24 +24,30 @@ if (program.file) {
 			slave_conf = slave_conf.replace(/\$\(port\)/g, obj.port);
 			console.log(slave_conf);
 			//creates a slave droplet
-			api.dropletsCreate({
-				"name": obj.project + "-slave",
-				"region": obj.digital_ocean.region,
-				"size": obj.digital_ocean.size,
-				"image": "docker",
-				"ssh_keys": null,
-				"backups": false,
-				"ipv6": false,
-				"private_networking": false,
-				"tags": [
-					obj.project + "-slave"
-				],
-				"user_data": slave_conf
-			},function (err, res, body) {
-				console.log(err);
-				console.log(body);
+			createDroplet(obj, slave_conf, function (resp) {
+				console.log(resp);
 			});
 		}
+	});
+}
+
+function createDroplet(obj, slave_conf, cb) {
+	api.dropletsCreate({
+		"name": obj.project + "-slave." + Math.floor((Math.random() * 1000) + 1),
+		"region": obj.digital_ocean.region,
+		"size": obj.digital_ocean.size,
+		"image": "docker",
+		"ssh_keys": null,
+		"backups": false,
+		"ipv6": false,
+		"private_networking": false,
+		"tags": [
+			obj.project + "-slave"
+		],
+		"user_data": slave_conf
+	},function (err, res, body) {
+		console.log(err);
+		cb(body);
 	});
 }
 
