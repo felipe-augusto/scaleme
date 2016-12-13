@@ -1,1 +1,1 @@
-[]
+[{"project":"test","git":"https://github.com/fesnt/extract_article.git","port":3000,"digital_ocean":{"key":"aacc669be5f2f6deca20277b2c0f72340e79e502e46eee024971bfb39a74070b","region":"nyc3","size":"512mb"},"cloudflare":{"email":"fesntmail@gmail.com","key":"9a7d9dc32e1f3240e470e20d5a1e16976bd86","domain":"hello.thamus.com.br"},"scaler_rules":{"min":1,"max":3,"interval":180,"up":{"metric":"cpu","rule":"gt","percent":70},"down":{"metric":"cpu","rule":"lt","percent":10}}}]

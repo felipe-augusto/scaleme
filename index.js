@@ -8,7 +8,7 @@ var utils = require('./utils');
 var parseDomain = require('parse-domain');
 var CFClient = require('cloudflare');
 
-var file = 'data/projects.json';
+var file = __dirname + '/data/projects.json';
 
 var projects = readProjects();
 
@@ -59,13 +59,21 @@ if (program.start) {
 					slave_conf = slave_conf.replace(/\$\(port\)/g, obj.port);
 					//creates a slave droplet
 					projects.push(obj);
-					console.log('Criando novo droplet');
+					console.log('Criando slave droplet');
 					createDroplet(obj, slave_conf, function (resp) {
 						if(resp) {
 							console.log("Salvando arquivo de configuraçoes");
 							jsonfile.writeFile(file, projects, function (err) {
 								console.error(err)
 							})
+						}
+					});
+					var master_conf = fs.readFileSync('master.conf', 'utf8');
+					master_conf = master_conf.replace(/\$\(INFO\)/g, JSON.stringify(obj));
+					console.log('Criando master droplet');
+					createMaster(obj, master_conf, function (resp) {
+						if(resp) {
+
 						}
 					});
 				}
@@ -133,7 +141,25 @@ function createDroplet(obj, slave_conf, cb) {
 		],
 		"user_data": slave_conf
 	},function (err, res, body) {
-		console.log(err);
+		cb(body);
+	});
+}
+
+function createMaster(obj, master_conf, cb) {
+	api.dropletsCreate({
+		"name": obj.project + "-master",
+		"region": obj.digital_ocean.region,
+		"size": obj.digital_ocean.size,
+		"image": "docker",
+		"ssh_keys": null,
+		"backups": false,
+		"ipv6": false,
+		"private_networking": false,
+		"tags": [
+			obj.project
+		],
+		"user_data": master_conf
+	},function (err, res, body) {
 		cb(body);
 	});
 }
@@ -165,5 +191,6 @@ function makeMasterConf (config, master) {
 				.replace(/\$\(ROOT_DOMAIN\)/g, root_domain)
 				.replace(/\$\(MIN\)/g, config.scaler_rules.min)
 				.replace(/\$\(MAX\)/g, config.scaler_rules.max)
+				.replace(/\$\(INFO\)/g, JSON.stringify(config));
 	console.log(master)
 }
