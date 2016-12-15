@@ -4,8 +4,10 @@ var async = require('async');
 var request = require('request');
 var parseDomain = require('parse-domain');
 
+// for now only working using CPU metric
 var cpu = "/api/v1/data?chart=system.cpu&format=array&points=60&group=average&options=absolute|jsonwrap|nonzero&after=-50";
 
+// monitor a project
 module.exports.check_status = function (name, key) {
 	api = new DigitalOcean(key, 1000);
 	api.dropletsGetAll({tag_name : name + "-slave"}, function (err, data, body) {
@@ -17,6 +19,7 @@ module.exports.check_status = function (name, key) {
 	})
 }
 
+// delete all slaves, master and DNS of a certain project
 module.exports.deleteProject = function (item, cb) {
 	// do client
 	api = new DigitalOcean(item.digital_ocean.key, 1000);
@@ -25,7 +28,7 @@ module.exports.deleteProject = function (item, cb) {
 		email: item.cloudflare.email,
 		key: item.cloudflare.key
 	});
-	api.dropletsGetAll({tag_name : item.project + "-slave"}, function (err, data, body) {
+	api.dropletsGetAll({tag_name : item.project}, function (err, data, body) {
 		// delete all droplets
 		body.droplets.forEach(function (drop) {
 			var id = drop.id;
@@ -36,14 +39,17 @@ module.exports.deleteProject = function (item, cb) {
 				var zone = value.result[0].id;
 				// check all DNS records for that zone
 				client.browseDNS(zone, {content : ip}).then(function (value) {
+					// check if it has a DNS for the droplet
 					if(value.result[0]) {
+						// delete the DNS
 						client.deleteDNS(value.result[0]).then(function (value) {
-							console.log(value);
+							// delete the droplet
 							api.dropletsDelete(id, function (resp) {
 								cb(resp);
 							})
 						})
 					} else {
+						// only delete the droplet
 						api.dropletsDelete(id, function (resp) {
 							cb(resp);
 						})
@@ -55,6 +61,7 @@ module.exports.deleteProject = function (item, cb) {
 	})
 }
 
+// get CPU usage of a certain DROPLET
 function getInfoDroplet(droplet, cb) {
 	request.get("http://" + droplet.networks.v4[0].ip_address + ":19999" + cpu, function(err, data, body) {
 		if(err) {

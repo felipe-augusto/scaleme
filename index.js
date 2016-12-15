@@ -8,6 +8,7 @@ var utils = require('./utils');
 var parseDomain = require('parse-domain');
 var CFClient = require('cloudflare');
 
+// file that we record all projects
 var file = __dirname + '/data/projects.json';
 
 var projects = readProjects();
@@ -18,14 +19,7 @@ program
   .option('-l, --list', 'List', '')
   .option('-m, --monitor [type]', 'Show monitor of certain project', '')
   .option('-d, --delete [type]', 'Delete a project (terminate)', '')
-  .option('-t, --test', 'test', '')
   .parse(process.argv);
-
-if(program.test) {
-	var config = JSON.parse(fs.readFileSync('config.sm', 'utf8'));
-	var master = fs.readFileSync('master.conf', 'utf8');
-	makeMasterConf(config, master);
-}
  
 // starts a new project
 if (program.start) {
@@ -46,23 +40,25 @@ if (program.start) {
 		var root_domain = tmp.domain + '.' + tmp.tld;
 		client.browseZones({name : root_domain}).then(function (value) {
 			if(value.result.length == 0) {
-				// throw error
+				// end execution
 				console.log('Error: Zone file not found. Is ' + root_domain + ' on CloudFlare?');
 			} else {
 				// zone file OK, create the droplets
 				if(obj.digital_ocean) {
 					api = new DigitalOcean(obj.digital_ocean.key, 1000);
-					// update file
+					// push project to file
+					projects.push(obj);
 					var slave_conf = fs.readFileSync('slave.conf', 'utf8');
+					// replace conf with input variables from user
 					slave_conf = slave_conf.replace(/\$\(folder\)/g, splitGit(obj.git));
 					slave_conf = slave_conf.replace(/\$\(url\)/g, obj.git);
 					slave_conf = slave_conf.replace(/\$\(port\)/g, obj.port);
-					//creates a slave droplet
-					projects.push(obj);
+					// creates a slave droplet
 					console.log('Criando slave droplet');
-					createDroplet(obj, slave_conf, function (resp) {
+					createSlave(obj, slave_conf, function (resp) {
 						if(resp) {
 							console.log("Salvando arquivo de configuraçoes");
+							// write to file
 							jsonfile.writeFile(file, projects, function (err) {
 								console.error(err)
 							})
@@ -99,19 +95,22 @@ if(program.monitor) {
 if(program.delete) {
 	var projects = readProjects();
 	var current = projects.filter(function (item) {
-		// need to delete this
+		// check if need to delete
 		if(item.project == program.delete) {
 			utils.deleteProject(item, function () {
-				console.log("Tudo certo!");
+				console.log("All Good!");
 			});
 		} 
 		return item.project != program.delete
 	});
+	// remove from the file the project
 	jsonfile.writeFile(file, current, function (err) {
 		console.error(err)
 	})
 }
 
+// return if the project exists and shows in the console
+// monitoring information
 function getProjectInfo(name) {
 	var projects = readProjects();
 	var current = projects.filter(function (item) { 
@@ -125,7 +124,8 @@ function getProjectInfo(name) {
 	}
 }
 
-function createDroplet(obj, slave_conf, cb) {
+// create slave droplet
+function createSlave(obj, slave_conf, cb) {
 	api.dropletsCreate({
 		"name": obj.project + "-slave." + Math.floor((Math.random() * 1000) + 1),
 		"region": obj.digital_ocean.region,
@@ -145,6 +145,8 @@ function createDroplet(obj, slave_conf, cb) {
 	});
 }
 
+
+// create master droplet (scaler)
 function createMaster(obj, master_conf, cb) {
 	api.dropletsCreate({
 		"name": obj.project + "-master",
@@ -164,12 +166,14 @@ function createMaster(obj, master_conf, cb) {
 	});
 }
 
+// get the name of the git project to make the folder
 function splitGit(url) {
 	var tamanho = url.split("/").length;
 	var pre = url.split("/")[tamanho - 1];
 	return pre.split(".")[0];
 }
 
+// read projects from file
 function readProjects() {
 	var file = 'data/projects.json';
 	try {
@@ -177,20 +181,4 @@ function readProjects() {
 	} catch (err) {
 		return [];
 	}
-}
-
-function makeMasterConf (config, master) {
-	console.log(config.cloudflare);
-	var tmp = parseDomain(config.cloudflare.domain);
-	var root_domain = tmp.domain + '.' + tmp.tld;
-	master = master.replace(/\$\(CLOUDFLARE_EMAIL\)/g, config.cloudflare.email)
-				.replace(/\$\(PROJECT_NAME\)/g, config.project)
-				.replace(/\$\(CLOUDFLARE_KEY\)/g, config.cloudflare.key)
-				.replace(/\$\(DO_KEY\)/g, config.digital_ocean.key)
-				.replace(/\$\(DOMAIN\)/g, config.cloudflare.domain)
-				.replace(/\$\(ROOT_DOMAIN\)/g, root_domain)
-				.replace(/\$\(MIN\)/g, config.scaler_rules.min)
-				.replace(/\$\(MAX\)/g, config.scaler_rules.max)
-				.replace(/\$\(INFO\)/g, JSON.stringify(config));
-	console.log(master)
 }

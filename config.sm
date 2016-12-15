@@ -1,21 +1,21 @@
 {
-	"project": "test",
-	"git" : "https://github.com/fesnt/extract_article.git",
-	"port" : 3000,
+	"project": "test", // project name
+	"git" : "https://github.com/fesnt/extract_article.git", // example docker container app
+	"port" : 3000, // port that your container runs
 	"digital_ocean" : {
-		"key": "aacc669be5f2f6deca20277b2c0f72340e79e502e46eee024971bfb39a74070b",
+		"key": "YOUR_DO_KEY",
 		"region" : "nyc3",
 		"size": "512mb"
 	},
 	"cloudflare" : {
-		"email": "fesntmail@gmail.com",
-		"key": "9a7d9dc32e1f3240e470e20d5a1e16976bd86",
-		"domain": "hello.thamus.com.br"
+		"email": "your@email.com",
+		"key": "YOU_CLOUDFLARE_KEY",
+		"domain": "test.example.com"
 	},
 	"scaler_rules": {
-		"min": 1,
-		"max": 3,
-		"interval" : 30,
+		"min": 1, // min number of computers
+		"max": 3, // max number of computers
+		"interval" : 300, // interval to monitor and decide to scale
 		"up": {
 			"metric": "cpu",
 			"rule": "gt",
